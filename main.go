@@ -19,6 +19,7 @@ func main() {
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(manageRole)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -54,5 +55,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	}
+}
+
+func manageRole(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+	// If the message is "ping" reply with "Pong!"
+	if m.Content == "!addrole lets-sketch-tech-online" {
+    s.ChannelMessageSend(m.ChannelID, "Adding role: lets-sketch-tech-online")
+    s.ChannelMessageSend(m.ChannelID, "Unable to add role: not implemented")
 	}
 }
