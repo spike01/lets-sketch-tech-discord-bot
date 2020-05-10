@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,8 +14,7 @@ import (
 func main() {
 	dg, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
+		log.Fatal("error creating Discord session,", err)
 	}
 
 	dg.AddHandler(ping)
@@ -23,16 +23,21 @@ func main() {
 
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
+		log.Fatal("error opening connection,", err)
 	}
+	defer dg.Close()
 
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	// HTTP server in case that's what Heroku is looking for?
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	go http.ListenAndServe(":"+port, nil)
+
+	log.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
-	dg.Close()
 }
 
 func ping(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -68,10 +73,11 @@ func manageRole(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Adding role: lets-sketch-tech-online")
 		err := s.GuildMemberRoleAdd(os.Getenv("GUILD_ID"), m.Author.ID, os.Getenv("ROLE_ID"))
 		if err != nil {
-			fmt.Println("Unable to create role:", err)
+			log.Println("[WARN] Unable to create role:", err)
 			s.ChannelMessageSend(m.ChannelID, "Sorry, something went wrong - please message spike#1714 (admin)")
 			return
 		}
+		log.Printf("[INFO] Added %s to lets-sketch-tech-online\n", m.Author.Username)
 		s.ChannelMessageSend(m.ChannelID, "You have been added. Enjoy! =^^=")
 	}
 }
