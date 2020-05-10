@@ -16,7 +16,7 @@ func main() {
 		return
 	}
 
-	dg.AddHandler(messageCreate)
+	dg.AddHandler(ping)
 	dg.AddHandler(manageRole)
 
 	err = dg.Open()
@@ -35,7 +35,7 @@ func main() {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func ping(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -51,11 +51,16 @@ func manageRole(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
+	// Only allow this to work from a DM
+	if m.GuildID != "" {
+		return
+	}
 	if m.Content == "!addrole lets-sketch-tech-online" {
 		s.ChannelMessageSend(m.ChannelID, "Adding role: lets-sketch-tech-online")
 		err := s.GuildMemberRoleAdd(os.Getenv("GUILD_ID"), m.Author.ID, os.Getenv("ROLE_ID"))
 		if err != nil {
 			fmt.Println("Unable to create role:", err)
+			s.ChannelMessageSend(m.ChannelID, "Sorry, something went wrong - please message spike#1714 (admin)")
 			return
 		}
 		s.ChannelMessageSend(m.ChannelID, "You have been added. Enjoy! Miuuu :3")
