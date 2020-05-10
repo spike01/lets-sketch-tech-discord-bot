@@ -17,6 +17,7 @@ func main() {
 	}
 
 	dg.AddHandler(ping)
+	dg.AddHandler(help)
 	dg.AddHandler(manageRole)
 
 	err = dg.Open()
@@ -33,8 +34,6 @@ func main() {
 	dg.Close()
 }
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
 func ping(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -44,6 +43,15 @@ func ping(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	}
+}
+
+func help(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+	if m.Content == "!help" {
+		s.ChannelMessageSend(m.ChannelID, "I'm a tiny orange cat. Miuuuu!")
 	}
 }
 
@@ -63,6 +71,6 @@ func manageRole(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "Sorry, something went wrong - please message spike#1714 (admin)")
 			return
 		}
-		s.ChannelMessageSend(m.ChannelID, "You have been added. Enjoy! Miuuu :3")
+		s.ChannelMessageSend(m.ChannelID, "You have been added. Enjoy! =^^=")
 	}
 }
