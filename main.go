@@ -20,6 +20,7 @@ func main() {
 	dg.AddHandler(ping)
 	dg.AddHandler(help)
 	dg.AddHandler(manageRole)
+	dg.AddHandler(autoAddRole)
 
 	err = dg.Open()
 	if err != nil {
@@ -34,7 +35,7 @@ func main() {
 	}
 	go http.ListenAndServe(":"+port, nil)
 
-	log.Println("Bot is now running.  Press CTRL-C to exit.")
+	log.Println("[INFO] Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -73,11 +74,20 @@ func manageRole(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Adding role: lets-sketch-tech-online")
 		err := s.GuildMemberRoleAdd(os.Getenv("GUILD_ID"), m.Author.ID, os.Getenv("ROLE_ID"))
 		if err != nil {
-			log.Println("[WARN] Unable to create role:", err)
+			log.Println("[WARN] Unable to add role from !addrole:", err)
 			s.ChannelMessageSend(m.ChannelID, "Sorry, something went wrong - please message spike#1714 (admin)")
 			return
 		}
 		log.Printf("[INFO] Added %s to lets-sketch-tech-online\n", m.Author.Username)
 		s.ChannelMessageSend(m.ChannelID, "You have been added. Enjoy! =^^=")
 	}
+}
+
+func autoAddRole(s *discordgo.Session, ev *discordgo.GuildMemberAdd) {
+	err := s.GuildMemberRoleAdd(os.Getenv("GUILD_ID"), ev.Member.User.ID, os.Getenv("ROLE_ID"))
+	if err != nil {
+		log.Println("[WARN] Unable to automatically add role", err)
+		return
+	}
+	log.Printf("[INFO] Auto-added %s to lets-sketch-tech-online\n", ev.Member.User.Username)
 }
