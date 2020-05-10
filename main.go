@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/heroku/x/hmetrics/onload"
 )
 
 func main() {
